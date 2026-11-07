@@ -18,6 +18,8 @@ import java.util.Set;
  */
 final class Schedule {
     static final Duration WINDOW = Duration.ofDays(7);
+    /** Personnalisation : au plus tant de matchs d'une même journée par calendrier. */
+    static final int MAX_PER_CALENDAR = 12;
 
     static final class Turn {
         final String topLine;
@@ -51,17 +53,33 @@ final class Schedule {
             if (events == null || events.isEmpty()) continue;
             List<Ics.Event> sorted = new ArrayList<>(events);
             sorted.sort(Comparator.comparing(e -> e.start));
+            // Personnalisation : tous les matchs de la prochaine journée (ceux en cours compris), pas seulement le
+            // premier. La journée est celle du premier match pas encore terminé, à l'heure de la TV.
+            // Un calendrier nommé "Équipe - Compétition" (ex. "France - Ligue des nations") ne garde que les matchs
+            // dont le titre contient l'équipe.
+            int dash = c.name.indexOf(" - ");
+            String team = dash > 0 ? c.name.substring(0, dash).trim().toLowerCase(Locale.ROOT) : null;
+            java.time.LocalDate today = now.atZone(zone).toLocalDate();
+            java.time.LocalDate day = null;
+            int taken = 0;
             for (Ics.Event e : sorted) {
                 Instant end = endOf(e, c.sport, zone);
                 if (!end.isAfter(now)) continue;
-                if (e.start.isBefore(horizon)) {
-                    String top = Titles.topLine(e.title, c.name);
-                    if (seen.add(top.toLowerCase(Locale.ROOT) + "|" + e.start.toEpochMilli())) {
-                        out.add(new Turn(top, Titles.word(c.sport, e.title), c.name, e.start.toEpochMilli(),
-                                end.toEpochMilli(), Palette.colour(c.colour)));
-                    }
+                if (team != null && !e.title.toLowerCase(Locale.ROOT).contains(team)) continue;
+                boolean live = !e.start.isAfter(now);
+                if (day == null) {
+                    if (!e.start.isBefore(horizon)) break;
+                    day = e.start.atZone(zone).toLocalDate();
+                } else if (!live && !(day.equals(today) && e.start.atZone(zone).toLocalDate().equals(day))) {
+                    // Journée d'un autre jour : seulement le prochain match. Aujourd'hui : tous ceux du jour.
+                    break;
                 }
-                break;
+                String top = Titles.topLine(e.title, c.name);
+                if (seen.add(top.toLowerCase(Locale.ROOT) + "|" + e.start.toEpochMilli())) {
+                    out.add(new Turn(top, Titles.word(c.sport, e.title), c.name, e.start.toEpochMilli(),
+                            end.toEpochMilli(), Palette.colour(c.colour)));
+                    if (++taken >= MAX_PER_CALENDAR) break;
+                }
             }
         }
         Collections.sort(out, Comparator.comparingLong(t -> t.startMs));

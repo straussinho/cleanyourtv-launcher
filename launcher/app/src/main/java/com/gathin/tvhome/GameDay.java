@@ -142,7 +142,7 @@ final class GameDay {
             if (start < 0 || end <= start) continue;
             String word = r[1] instanceof String ? (String) r[1] : "";
             int colour = r[4] instanceof Number ? ((Number) r[4]).intValue() : 0xFFFFFFFF;
-            out.add(new Turn((String) r[0], word, start, end, colour));
+            out.add(new Turn((String) r[0], word, start, end, colour, r[5] instanceof String ? (String) r[5] : ""));
         }
         return out;
     }
@@ -165,12 +165,23 @@ final class GameDay {
         /** ARGB, for the short bar. */
         final int colour;
         final boolean f1;
+        /** Personnalisation : le nom du calendrier dans Game Day ("Premier League"), pour l'image du panneau. */
+        final String calendar;
 
         Turn(String topLine, String word, long startMs, long endMs, int colour) {
-            this(topLine, word, startMs, endMs, colour, false);
+            this(topLine, word, startMs, endMs, colour, false, "");
+        }
+
+        Turn(String topLine, String word, long startMs, long endMs, int colour, String calendar) {
+            this(topLine, word, startMs, endMs, colour, false, calendar == null ? "" : calendar);
         }
 
         private Turn(String topLine, String word, long startMs, long endMs, int colour, boolean f1) {
+            this(topLine, word, startMs, endMs, colour, f1, "");
+        }
+
+        private Turn(String topLine, String word, long startMs, long endMs, int colour, boolean f1, String calendar) {
+            this.calendar = calendar;
             this.topLine = topLine;
             this.word = word;
             this.startMs = startMs;

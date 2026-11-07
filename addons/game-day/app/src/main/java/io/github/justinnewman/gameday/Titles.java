@@ -57,6 +57,8 @@ final class Titles {
     static String word(Sport sport, String title) {
         String cleaned = clean(title);
         if (matchup(cleaned) != null) return sport.word();
+        // Personnalisation : fixtur.es écrit les matchs "Domicile - Extérieur" ; c'est un match, pas un autre événement.
+        if (sport.team() && cleaned.matches(".+\\S - \\S.+")) return sport.word();
         if (sport.team()) return STARTS;
         if (SESSION.matcher(cleaned).find()) return STARTS;
         return sport.word();

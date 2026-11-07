@@ -204,6 +204,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private GameDay gameDay;
     private View raceBar;
     private LinearLayout racePager;
+    /** Personnalisation : l'image du sport à gauche du panneau (null dans une mise en page sans elle). */
+    private android.widget.ImageView raceArt;
     private long rotationStart;
     private long lastEndedRead;
     private final Runnable turnTick = this::updatePanel;
@@ -579,6 +581,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         raceSessions = findViewById(R.id.raceSessions);
         raceBar = findViewById(R.id.raceBar);
         racePager = findViewById(R.id.racePager);
+        raceArt = findViewById(R.id.raceArt);
         gameDay = GameDay.create(this, cfg.gameDay, handler, this::updatePanel);
         // The rotation runs on the clock that never jumps: setting the TV's time must not stall or stretch a turn.
         rotationStart = SystemClock.elapsedRealtime();
@@ -2803,6 +2806,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         int on = GameDay.current(turns.size(), since, seconds);
         GameDay.Turn t = turns.get(on);
         if (t.f1) {
+            showArt(R.drawable.sport_f1);
             raceBar.setBackgroundResource(R.drawable.race_bar);
             raceSessions.setVisibility(View.VISIBLE);
             updateRace();
@@ -2811,6 +2815,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             bar.setCornerRadius(1.5f * density);
             bar.setColor(t.colour);
             raceBar.setBackground(bar);
+            showArt(artFor(t.calendar));
             raceKicker.setText(t.topLine);
             if (GameDay.live(t, now)) {
                 SpannableString live = new SpannableString("\u25CF  " + getString(R.string.game_live));
@@ -2818,7 +2823,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 raceHeadline.setText(live);
             } else {
                 String in = RaceWeekend.countdown(getResources(), GameDay.until(t, now));
-                raceHeadline.setText(t.word.isEmpty() ? in : getString(R.string.race_next, t.word, in));
+                String word = localWord(t.word);
+                raceHeadline.setText(word.isEmpty() ? in : getString(R.string.race_next, word, in));
             }
             // No session times for a game: the line takes no room, so the dots sit under the countdown.
             raceSessions.setVisibility(View.GONE);
@@ -2826,6 +2832,40 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         showPager(turns.size(), on);
         if (turns.size() > 1 && !stopped) handler.postDelayed(turnTick, GameDay.delayToNextTurn(since, seconds));
+    }
+
+    /** Personnalisation : le mot de Game Day ("Kickoff", "Starts"...) en français quand la TV est en français. */
+    private static String localWord(String word) {
+        if (word == null || !"fr".equals(Locale.getDefault().getLanguage())) return word == null ? "" : word;
+        switch (word) {
+            case "Kickoff": return "Coup d'envoi";
+            case "Starts": return "Début";
+            case "Lights out": return "Départ";
+            case "Green flag": return "Départ";
+            case "Tip-off": return "Entre-deux";
+            case "First serve": return "Premier service";
+            default: return word;
+        }
+    }
+
+    /** Personnalisation : l'image d'un calendrier Game Day d'après son nom ; 0 pour aucune. */
+    private static int artFor(String calendar) {
+        String c = calendar == null ? "" : calendar.toLowerCase(Locale.ROOT);
+        if (c.contains("champions") || c.contains("ldc") || c.contains("ucl")) return R.drawable.sport_ucl;
+        if (c.contains("premier")) return R.drawable.sport_pl;
+        if (c.contains("france") || c.contains("bleus")) return R.drawable.sport_fra;
+        if (c.contains("f1") || c.contains("formul")) return R.drawable.sport_f1;
+        return R.drawable.sport_foot;
+    }
+
+    private void showArt(int res) {
+        if (raceArt == null) return;
+        if (res == 0) {
+            raceArt.setVisibility(View.GONE);
+        } else {
+            raceArt.setImageResource(res);
+            raceArt.setVisibility(View.VISIBLE);
+        }
     }
 
     /** One dot per turn, the one on screen bright; none for a single turn. */
@@ -2859,6 +2899,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return;
         }
         RaceWeekend.Race race = s.race;
+        showArt(R.drawable.sport_f1);
         raceKicker.setText(race.place.isEmpty()
                 ? getString(R.string.race_kicker_no_place, race.round, race.shortName())
                 : getString(R.string.race_kicker, race.round, race.shortName(), race.place));

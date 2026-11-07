@@ -98,4 +98,28 @@
     <string name="clock_format_system">Système</string>
     <string name="clock_format_12">12 heures</string>
     <string name="clock_format_24">24 heures</string>
+    <!-- Personnalisation : panneau F1 / matchs en français. -->
+    <string name="race_kicker">Manche %1$d · %2$s · %3$s</string>
+    <string name="race_kicker_no_place">Manche %1$d · %2$s</string>
+    <string name="race_next">%1$s dans %2$s</string>
+    <string name="race_lights_out">Départ dans %1$s</string>
+    <string name="race_live">%1$s · en direct</string>
+    <string name="race_finished">Drapeau à damier</string>
+    <string name="race_practice_1">Essais libres 1</string>
+    <string name="race_practice_2">Essais libres 2</string>
+    <string name="race_practice_3">Essais libres 3</string>
+    <string name="race_sprint_qualifying">Qualifs sprint</string>
+    <string name="race_sprint">Sprint</string>
+    <string name="race_qualifying">Qualifications</string>
+    <string name="race_race">Course</string>
+    <string name="race_practice_1_short">EL1</string>
+    <string name="race_practice_2_short">EL2</string>
+    <string name="race_practice_3_short">EL3</string>
+    <string name="race_sprint_qualifying_short">QS</string>
+    <string name="race_sprint_short">SPRINT</string>
+    <string name="race_qualifying_short">QUALIF</string>
+    <string name="race_race_short">COURSE</string>
+    <string name="race_countdown_minutes">%1$d min</string>
+    <string name="race_countdown_hours">%1$d h %2$02d</string>
+    <string name="race_countdown_days">%1$d j %2$d h</string>
 </resources>
