@@ -17,8 +17,12 @@ import java.util.Locale;
  */
 final class RaceWeekend {
 
-    /** The panel shows from this long before a weekend's first session... */
-    static final Duration LEAD = Duration.ofHours(12);
+    /**
+     * The panel shows from this long before a weekend's first session...
+     * Personnalisation : 7 jours au lieu de 12 h, pour voir le prochain Grand Prix toute la semaine. Pendant deux
+     * week-ends rapprochés, le premier reste affiché jusqu'à sa fin, puis le suivant prend sa place.
+     */
+    static final Duration LEAD = Duration.ofDays(7);
     /** ...until this long after the race starts: a race runs about two hours, then the result settles. */
     static final Duration TAIL = Duration.ofHours(4);
 

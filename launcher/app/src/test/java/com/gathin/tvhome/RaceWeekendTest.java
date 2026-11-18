@@ -28,15 +28,15 @@ public class RaceWeekendTest {
 
     @Test
     public void nothingBeforeTheWeekendOpens() {
-        assertNull(RaceWeekend.at(CALENDAR, Instant.parse("2026-10-23T05:29:00Z")));
+        assertNull(RaceWeekend.at(CALENDAR, Instant.parse("2026-10-16T17:29:00Z")));
     }
 
     @Test
-    public void opensTwelveHoursBeforeFirstPractice() {
-        RaceWeekend.State s = RaceWeekend.at(CALENDAR, Instant.parse("2026-10-23T05:30:00Z"));
+    public void opensSevenDaysBeforeFirstPractice() {
+        RaceWeekend.State s = RaceWeekend.at(CALENDAR, Instant.parse("2026-10-16T17:30:00Z"));
         assertSame(AUSTIN, s.race);
         assertEquals("FP1", s.next.name);
-        assertEquals(Duration.ofHours(12), s.untilNext);
+        assertEquals(Duration.ofDays(7), s.untilNext);
         assertEquals(RaceWeekend.Status.NEXT, s.statuses.get(0));
         assertEquals(RaceWeekend.Status.LATER, s.statuses.get(4));
     }
@@ -63,6 +63,24 @@ public class RaceWeekendTest {
     public void closesFourHoursAfterTheRaceStarts() {
         assertTrue(RaceWeekend.at(CALENDAR, Instant.parse("2026-10-25T23:59:00Z")).finished());
         assertNull(RaceWeekend.at(CALENDAR, Instant.parse("2026-10-26T00:00:00Z")));
+    }
+
+    // Las Vegas puis Qatar, cinq jours d'écart : les deux fenêtres de 7 jours se chevauchent.
+    private static final RaceWeekend.Race VEGAS = new RaceWeekend.Race(21, "Las Vegas Grand Prix", "Las Vegas",
+            Arrays.asList(
+                    new RaceWeekend.Session("FP1", Instant.parse("2026-11-20T00:30:00Z")),
+                    new RaceWeekend.Session("RACE", Instant.parse("2026-11-22T04:00:00Z"))));
+    private static final RaceWeekend.Race QATAR = new RaceWeekend.Race(22, "Qatar Grand Prix", "Lusail",
+            Arrays.asList(
+                    new RaceWeekend.Session("FP1", Instant.parse("2026-11-27T13:30:00Z")),
+                    new RaceWeekend.Session("RACE", Instant.parse("2026-11-29T16:00:00Z"))));
+
+    @Test
+    public void backToBackWeekendsShowTheFirstUntilItEnds() {
+        List<RaceWeekend.Race> both = Arrays.asList(VEGAS, QATAR);
+        assertSame(VEGAS, RaceWeekend.at(both, Instant.parse("2026-11-21T12:00:00Z")).race);
+        assertSame(VEGAS, RaceWeekend.at(both, Instant.parse("2026-11-22T07:59:00Z")).race);
+        assertSame(QATAR, RaceWeekend.at(both, Instant.parse("2026-11-22T08:00:00Z")).race);
     }
 
 }
